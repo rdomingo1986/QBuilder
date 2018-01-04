@@ -137,18 +137,21 @@ class QBuilder extends SQLClass {
   }
 
   public function result($serialized = false) {
-    $alloweds = [false, 'JSON', 'XML'];
-    if(array_search($serialized, $alloweds, true) === false) {
-      errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+    $willSerialized = $serialized != false;
+    if($willSerialized) {
+      $alloweds = [false, 'JSON', 'XML'];
+      if(array_search($serialized, $alloweds, true) === false) {
+        errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+      }
     }
-
+    
     $this->_numRows = $this->count_rows($this->_resultSet);
     $arr = array();
     while($row = $this->fetch_assoc($this->_resultSet)) {
       $arr[] = $row;
     }
 
-    if($serialized != false) {
+    if($willSerialized) {
       if($serialized == 'JSON') {
         $arr = json_encode($arr);
       } else {
@@ -160,9 +163,25 @@ class QBuilder extends SQLClass {
     return $arr;
   }
 
-  public function row() {
+  public function row($serialized = false) {
+    $willSerialized = $serialized != false;
+    if($willSerialized) {
+      $alloweds = [false, 'JSON', 'XML'];
+      if(array_search($serialized, $alloweds, true) === false) {
+        errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+      }
+    }
+
     $this->_numRows = 1;
     $row = $this->fetch_assoc($this->_resultSet);
+
+    if($willSerialized) {
+      if($serialized == 'JSON') {
+        $row = json_encode($row);
+      } else {
+        $row = xmlrpc_encode($row);
+      }
+    }
     $this->free_result($this->_resultSet);
     return $row;
   }

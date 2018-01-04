@@ -5,9 +5,9 @@
   $result = $db->select('*')
     ->from('people')
     ->get()
-    ->result();
+    ->result('XML');
 
-  echo json_encode($result);
+  echo $result;
   echo PHP_EOL;
   echo $db->num_rows();
 ?>
