@@ -1,4 +1,6 @@
 <?php
+require_once 'SQLClass.php';
+
 class QBuilder {
   
   protected $_rawQuery;
@@ -37,8 +39,8 @@ class QBuilder {
     return $this;
   }
 
-  public function where($column, $condition, $value) {
-    $argsQty = count(func_get_args());
+  public function where($column, $condition, $value) { // colocar que si se envia un solo parametro y es array se metan varios where and
+    $argsQty = count(func_get_args()); // que condition sea mandatorio y que pueda escribir un whera raw
     if(strpos($this->_rawQuery, 'WHERE') === false) {
       $sqlWord = 'WHERE ';
     } else {
@@ -61,7 +63,7 @@ class QBuilder {
     return $this;
   }
 
-  public function orWhere($column, $condition, $value) {
+  public function orWhere($column, $condition, $value) { // colocar que si se envia un solo parametro y es array se metan varios where or y que el primero no se le anteponga OR, solo aplica cuando esta dentro de un openGroup
     $argsQty = count(func_get_args());
     $sqlWord = 'OR ';
     if($argsQty === 2) {
@@ -83,7 +85,12 @@ class QBuilder {
     return $this;
   }
 
-  public function limit($limit = 0, $offset = 0) {
+  public function limit($limit = 1, $offset = 0) {
+    if($offset === 0) {
+      $this->_rawQuery .= 'LIMIT ' . $limit. ' ';
+    } else {
+      $this->_rawQuery .= 'LIMIT ' . $offset . ', ' . $limit. ' ';
+    }
     return $this;
   }
 
@@ -101,16 +108,17 @@ class QBuilder {
   }
 
   public function get($table = '') {
+    var_dump(strpos($this->_rawQuery, 'FROM'));
     $tableExists = trim($table) !== '';
     if($tableExists && strpos($this->_rawQuery, 'FROM') !== false) {
-      throw new Exception();
+      throw new Exception('1');
     }
     if($tableExists && trim($this->_rawQuery) === '') {
       $this->_rawQuery = 'SELECT * FROM ' . $table;
     } else if($tableExists && strpos($this->_rawQuery, 'SELECT') !== false) {
       $this->_rawQuery .= 'FROM ' . $table;
     } else if(!$tableExists && trim($this->_rawQuery) === '') {
-      throw new Exception();
+      throw new Exception('2');
     }
     //hacer el query de la consulta en base de datos
     return $this;
@@ -124,11 +132,6 @@ class QBuilder {
     return $this;
   }
 
-  function __destruct() {}
+  function __destruct() { }
 }
-
-$db = new QBuilder();
-$result = $db->select('id AS ID')->get('users')->getRawQuery();
-
-echo $result;
 ?>
