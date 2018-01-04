@@ -16,7 +16,6 @@ Basic SELECT query
 -----------
 
 ``` sh
-<?php
   $QB = new QBuilder();
 
   $result = $QB->select()
@@ -25,5 +24,5 @@ Basic SELECT query
                ->result();
 
   // Resultant query 'SELECT * FROM users'
-  // This return all rows with all columns from the users table
+  // This return all rows from the users table
 ```
