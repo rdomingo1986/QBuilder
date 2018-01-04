@@ -35,6 +35,9 @@ class SQLClass {
   
   // public function fetch_row($resultSet){ return $resultSet->fetch_row(); }
 
-  public function disconnect() { mysqli_close($this->_link); }
+  public function disconnect() { 
+    mysqli_close($this->_link);
+    $this->_link = null;
+  }
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
 require_once './QBuilder/config/DBConfig.php';
+require_once 'Functions.php';
 require_once 'SQLClass.php';
 
 class QBuilder extends SQLClass {
@@ -135,12 +136,26 @@ class QBuilder extends SQLClass {
     return $this;
   }
 
-  public function result() {
+  public function result($serialized = false) {
+    $alloweds = [false, 'JSON', 'XML'];
+    if(array_search($serialized, $alloweds, true) === false) {
+      errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+    }
+
     $this->_numRows = $this->count_rows($this->_resultSet);
     $arr = array();
     while($row = $this->fetch_assoc($this->_resultSet)) {
       $arr[] = $row;
     }
+
+    if($serialized != false) {
+      if($serialized == 'JSON') {
+        $arr = json_encode($arr);
+      } else {
+        $arr = xmlrpc_encode($arr);
+      }
+    }
+
     $this->free_result($this->_resultSet);
     return $arr;
   }
@@ -156,6 +171,10 @@ class QBuilder extends SQLClass {
     return $this->_numRows;
   }
 
-  function __destruct() { }
+  function __destruct() { 
+    if($this->_link != null) {
+      $this->_link->disconnect();
+    }
+  }
 }
 ?>
