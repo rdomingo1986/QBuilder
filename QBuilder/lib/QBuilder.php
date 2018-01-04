@@ -130,6 +130,7 @@ class QBuilder extends SQLClass {
     $this->connect(new DBConfig($this->_connectionName));
     $this->_rawQuery = trim($this->_rawQuery);
     $this->_resultSet = $this->query($this->_rawQuery);
+    $this->cleanRawQuery();
     $this->disconnect();
     return $this;
   }
@@ -141,7 +142,6 @@ class QBuilder extends SQLClass {
       $arr[] = $row;
     }
     $this->free_result($this->_resultSet);
-    $this->cleanRawQuery();
     return $arr;
   }
 
@@ -149,7 +149,6 @@ class QBuilder extends SQLClass {
     $this->_numRows = 1;
     $row = $this->fetch_assoc($this->_resultSet);
     $this->free_result($this->_resultSet);
-    $this->cleanRawQuery();
     return $row;
   }
 
