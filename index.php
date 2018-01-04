@@ -7,7 +7,7 @@
     ->get()
     ->result('XML');
 
-  echo $result;
+  // echo $result;
   echo PHP_EOL;
   echo $db->num_rows();
 ?>

@@ -49,8 +49,10 @@ class QBuilder extends SQLClass {
     return $this;
   }
 
-  public function where($column, $condition, $value) { // colocar que si se envia un solo parametro y es array se metan varios where and
-    $argsQty = count(func_get_args()); // que condition sea mandatorio y que pueda escribir un whera raw
+  public function where($column, $condition, $value) {
+    // colocar que si se envia un solo parametro y es array se metan varios where and
+    // que condition sea mandatorio y que pueda escribir un whera raw
+    $argsQty = count(func_get_args()); 
     if(strpos($this->_rawQuery, 'WHERE') === false) {
       $sqlWord = 'WHERE ';
     } else {
@@ -106,6 +108,9 @@ class QBuilder extends SQLClass {
   }
 
   public function limit($limit = 1, $offset = 0) {
+    if(gettype((int)$limit) != 'integer' || gettype((int)$offset) != 'integer') {
+      errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+    }
     if($offset === 0) {
       $this->_rawQuery .= 'LIMIT ' . $limit. ' ';
     } else {
