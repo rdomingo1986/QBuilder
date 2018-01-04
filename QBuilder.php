@@ -53,12 +53,12 @@ class QBuilder {
       $this->_rawQuery .= $sqlWord . $column . ' = "'. $value .'" ';
     } else if($argsQty === 3) {
       $alloweds = ['=', '<>', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE'];
-      if(!array_search($condition, $alloweds, true)) {
-        throw new Exception();
+      if(array_search($condition, $alloweds, true) === false) {
+        throw new Exception('1');
       }
       $this->_rawQuery .= $sqlWord . $column . ' ' . $condition . ' "'. $value .'" ';
     } else {
-      throw new Exception();
+      throw new Exception('2');
     }
     return $this;
   }
@@ -71,17 +71,27 @@ class QBuilder {
       $this->_rawQuery .= $sqlWord . $column . ' = "'. $value .'" ';
     } else if($argsQty === 3) {
       $alloweds = ['=', '<>', '!=', '<', '<=', '>', '>='];
-      if(!array_search($condition, $alloweds, true)) {
-        // throw new Exception();
+      if(array_search($condition, $alloweds, true) === false) {
+        throw new Exception('1');
       }
       $this->_rawQuery .= $sqlWord . $column . ' ' . $condition . ' "'. $value .'" ';
     } else {
-      // throw new Exception();
+      throw new Exception('2');
     }
     return $this;
   }
 
-  public function orderBy() {
+  public function orderBy($column, $order) {
+    $alloweds = ['ASC', 'DESC'];
+    if(array_search($order, $alloweds, true) === false) {
+      throw new Exception('1');
+    }
+    if(strpos($this->_rawQuery, 'ORDER BY') === false) {
+      $this->_rawQuery .= 'ORDER BY ' . $column . ' ' . $order . ' ';
+    } else {
+      $this->_rawQuery = trim($this->_rawQuery);
+      $this->_rawQuery .= ', ' . $column . ' ' . $order . ' ';
+    }
     return $this;
   }
 
@@ -97,8 +107,8 @@ class QBuilder {
   public function join($table, $condition, $joinType = '') {
     if(trim($joinType) !== '') {
       $alloweds = ['INNER', 'LEFT', 'RIGHT', 'FULL'];
-      if(!array_search($joinType, $alloweds, true)) {
-        // throw new Exception();
+      if(array_search($joinType, $alloweds, true) === false) {
+        throw new Exception('1');
       } else {
         $joinType .= ' '; 
       }
@@ -107,19 +117,8 @@ class QBuilder {
     return $this;
   }
 
-  public function get($table = '') {
-    var_dump(strpos($this->_rawQuery, 'FROM'));
-    $tableExists = trim($table) !== '';
-    if($tableExists && strpos($this->_rawQuery, 'FROM') !== false) {
-      throw new Exception('1');
-    }
-    if($tableExists && trim($this->_rawQuery) === '') {
-      $this->_rawQuery = 'SELECT * FROM ' . $table;
-    } else if($tableExists && strpos($this->_rawQuery, 'SELECT') !== false) {
-      $this->_rawQuery .= 'FROM ' . $table;
-    } else if(!$tableExists && trim($this->_rawQuery) === '') {
-      throw new Exception('2');
-    }
+  public function get() {
+    $this->_rawQuery;
     //hacer el query de la consulta en base de datos
     return $this;
   }

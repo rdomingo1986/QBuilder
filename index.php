@@ -4,6 +4,7 @@
   $db = new QBuilder();
   $result = $db->select()
     ->from('users')
+    ->orderBy('id', 'ASC')
     ->limit()
     ->get()
     ->getRawQuery();
