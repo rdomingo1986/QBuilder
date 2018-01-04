@@ -7,4 +7,13 @@ if(! function_exists('errorMessageHandler')) {
     throw new $exceptionType(isset($messages[$errorCode]) ? $messages[$errorCode] : 'Unknown QB error code: ' . $errorCode);
   }
 }
+
+if(! function_exists('paramExistsInAlloweds')) {
+  function paramExistsInAlloweds($param, $alloweds) {
+    if(array_search($param, $alloweds, true) === false) {
+      return false;
+    }
+    return true;
+  }
+}
 ?>

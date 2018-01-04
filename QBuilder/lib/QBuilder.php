@@ -49,28 +49,96 @@ class QBuilder extends SQLClass {
     return $this;
   }
 
-  public function where($column, $condition, $value) {
-    // colocar que si se envia un solo parametro y es array se metan varios where and
-    // que condition sea mandatorio y que pueda escribir un whera raw
-    $argsQty = count(func_get_args()); 
-    if(strpos($this->_rawQuery, 'WHERE') === false) {
-      $sqlWord = 'WHERE ';
-    } else {
-      if(substr(trim($this->_rawQuery), -1) != '(') {
-        $sqlWord = 'AND ';
+  public function where() {
+    //falta que el segundo o tercer parametro contenga algo parecido a una consulta sql evitar el uso de doble comillas y auto colocar los parentecis
+    $args = func_get_args();
+    $argsQty = count($args);
+    $sqlWord = '';
+    
+    if($argsQty === 1) {
+
+
+      if(gettype($args[0]) === 'array') {
+        $conditions = $args[0];
+
+        foreach($conditions AS $condition) {
+          if(gettype($condition) === 'array') {
+
+
+            if(count($condition) === 2) {
+
+              $this->where($condition[0], $condition[1]);
+
+            } else if(count($condition) === 3) {
+
+              $this->where($condition[0], $condition[1], $condition[2]);
+
+            } else {
+              errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+            }
+
+
+          } else if(gettype($condition) === 'string') {
+            $this->where($condition);
+          } else {
+            errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+          }
+        }
+
+
+      } else if(gettype($args[0]) === 'string') {
+        
+        $value = trim($args[0]);
+        
+
+        if(strpos($this->_rawQuery, 'WHERE') === false) {
+          $sqlWord = 'WHERE ';
+          
+        } else {
+          if(substr(trim($this->_rawQuery), -1) != '(') {
+            $sqlWord = 'AND ';
+          }
+          
+        }
+
+        $this->_rawQuery .= $sqlWord . $value . ' ';
+        
+
+      } else {
+        errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
       }
-    }
-    if($argsQty === 2) {
-      $value = $condition;
-      $this->_rawQuery .= $sqlWord . $column . ' = "'. $value .'" ';
-    } else if($argsQty === 3) {
-      $alloweds = ['=', '<>', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE'];
-      if(array_search($condition, $alloweds, true) === false) {
-        throw new Exception('1');
+
+
+    
+    } else if($argsQty === 2 || $argsQty === 3){
+      
+      if(strpos($this->_rawQuery, 'WHERE') === false) {
+        $sqlWord = 'WHERE ';
+      } else {
+        if(substr(trim($this->_rawQuery), -1) != '(') {
+          $sqlWord = 'AND ';
+        }
+      }
+      
+      if($argsQty === 2) {
+        $column = $args[0];
+        $condition = '=';
+        $value = $args[1];
+      } else {
+        $column = $args[0];
+        $condition = $args[1];
+        $value = $args[2];
+
+        $alloweds = ['=', '<>', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE'];
+        if(!paramExistsInAlloweds($condition, $alloweds)) {
+          errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
+        }
       }
       $this->_rawQuery .= $sqlWord . $column . ' ' . $condition . ' "'. $value .'" ';
+      
+
     } else {
-      throw new Exception('2');
+      errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
     }
     return $this;
   }
@@ -83,8 +151,8 @@ class QBuilder extends SQLClass {
       $this->_rawQuery .= $sqlWord . $column . ' = "'. $value .'" ';
     } else if($argsQty === 3) {
       $alloweds = ['=', '<>', '!=', '<', '<=', '>', '>='];
-      if(array_search($condition, $alloweds, true) === false) {
-        throw new Exception('1');
+      if(!paramExistsInAlloweds($condition, $alloweds)) {
+        errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
       }
       $this->_rawQuery .= $sqlWord . $column . ' ' . $condition . ' "'. $value .'" ';
     } else {
@@ -95,8 +163,8 @@ class QBuilder extends SQLClass {
 
   public function orderBy($column, $order) {
     $alloweds = ['ASC', 'DESC'];
-    if(array_search($order, $alloweds, true) === false) {
-      throw new Exception('1');
+    if(!paramExistsInAlloweds($order, $alloweds)) {
+      errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
     }
     if(strpos($this->_rawQuery, 'ORDER BY') === false) {
       $this->_rawQuery .= 'ORDER BY ' . $column . ' ' . $order . ' ';
@@ -122,8 +190,8 @@ class QBuilder extends SQLClass {
   public function join($table, $condition, $joinType = '') {
     if(trim($joinType) !== '') {
       $alloweds = ['INNER', 'LEFT', 'RIGHT', 'FULL'];
-      if(array_search($joinType, $alloweds, true) === false) {
-        throw new Exception('1');
+      if(!paramExistsInAlloweds($joinType, $alloweds)) {
+        errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
       } else {
         $joinType .= ' '; 
       }
@@ -145,7 +213,7 @@ class QBuilder extends SQLClass {
     $willSerialized = $serialized != false;
     if($willSerialized) {
       $alloweds = [false, 'JSON', 'XML'];
-      if(array_search($serialized, $alloweds, true) === false) {
+      if(!paramExistsInAlloweds($serialized, $alloweds)) {
         errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
       }
     }
@@ -172,7 +240,7 @@ class QBuilder extends SQLClass {
     $willSerialized = $serialized != false;
     if($willSerialized) {
       $alloweds = [false, 'JSON', 'XML'];
-      if(array_search($serialized, $alloweds, true) === false) {
+      if(!paramExistsInAlloweds($serialized, $alloweds)) {
         errorMessageHandler('MALFORMED_SIGN', 'InvalidArgumentException');
       }
     }
