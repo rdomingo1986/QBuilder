@@ -25,4 +25,5 @@ Basic SELECT query
                ->result();
 
   // Resultant query 'SELECT * FROM users'
+  // This return all rows with all columns from the users table
 ```
