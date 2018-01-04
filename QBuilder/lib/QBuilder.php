@@ -1,20 +1,29 @@
 <?php
+require_once './QBuilder/config/DBConfig.php';
 require_once 'SQLClass.php';
 
-class QBuilder {
+class QBuilder extends SQLClass {
   
   protected $_rawQuery;
   private $_resultSet;
+  private $_numRows;
+  private $_connectionName;
 
-
-  function __construct($rawQuery = '') {
+  function __construct($connectionName = 'default') {
+    $this->_connectionName = $connectionName;
     $this->_rawQuery = $rawQuery;
     $this->_resultSet = null;
+    $this->_numRows = -1;
   }
 
   public function setRawQuery($rawQuery) { $this->_rawQuery = $rawQuery; }
 
   public function getRawQuery() { return $this->_rawQuery; }
+
+  public function cleanRawQuery() { 
+    $this->_rawQuery = '';
+    return $this;
+  }
 
   public function openGroup($before = 'AND') {
     if(strpos($this->_rawQuery, 'WHERE') !== false) {
@@ -118,17 +127,34 @@ class QBuilder {
   }
 
   public function get() {
-    $this->_rawQuery;
-    //hacer el query de la consulta en base de datos
+    $this->connect(new DBConfig($this->_connectionName));
+    $this->_rawQuery = trim($this->_rawQuery);
+    $this->_resultSet = $this->query($this->_rawQuery);
+    $this->disconnect();
     return $this;
   }
 
   public function result() {
-    return $this->_resultSet;
+    $this->_numRows = $this->count_rows($this->_resultSet);
+    $arr = array();
+    while($row = $this->fetch_assoc($this->_resultSet)) {
+      $arr[] = $row;
+    }
+    $this->free_result($this->_resultSet);
+    $this->cleanRawQuery();
+    return $arr;
   }
 
   public function row() {
-    return $this;
+    $this->_numRows = 1;
+    $row = $this->fetch_assoc($this->_resultSet);
+    $this->free_result($this->_resultSet);
+    $this->cleanRawQuery();
+    return $row;
+  }
+
+  public function num_rows() {
+    return $this->_numRows;
   }
 
   function __destruct() { }
