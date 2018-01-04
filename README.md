@@ -12,7 +12,7 @@ Download or clone the source code and require the QBuilder.php file.
   require_once 'QBuilder/lib/QBuilder.php';
 ```
 
-Basic "SELECT *" query
+Basic SELECT query
 -----------
 
 ``` sh
