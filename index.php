@@ -2,25 +2,33 @@
   require_once 'QBuilder/lib/QBuilder.php';
 
   $db = new QBuilder();
-  //crear varios where and dentro de la misma llamada //un solo parametro de typo array
-  //escribir un where raw // un solo parametro de tipo string
-  $result = $db->select('*')
-    ->from('people')
-    // ->where('id', 10)
-    // ->where('id = "10" AND apellido = "Ramirez"')
-    // ->where('name = "Domingo"')
-    // ->where([
-    //   'id = "10"'
-    // ])
-    ->where([
-      ['name', 'NOT LIKE', 'domingo'],
-      'id = "10"',
-      ['age', 20],
-      'direccion != "valera"'
-    ])
-    ->getRawQuery();
+  // $result = $db->select('*')
+  //   ->from('people')
+  //   ->where('id', 1)
+  //   ->execute()
+  //   ->row();
 
-  echo $result;
+  // $result = $db->insert('people', [
+  //   'name' => 'Luis',
+  //   'lastname' => 'Artigas',
+  //   'identification' => 1231114567,
+  //   'age' => 19
+  // ])->execute();
+
+  // $result = $db->update('people', [
+  //   'name' => 'Luis',
+  //   'lastname' => 'Perez',
+  //   'age' => 23
+  // ])
+  // ->where('identification', 1231114567)
+  // ->execute();
+
+  $result = $db->delete('people')
+    ->where('id', 1)
+    ->execute();
+
+  var_dump($result);
+  // echo PHP_EOL;
+  echo $db->numNows();
   echo PHP_EOL;
-  // echo $db->num_rows();
 ?>

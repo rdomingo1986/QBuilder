@@ -200,13 +200,16 @@ class QBuilder extends SQLClass {
     return $this;
   }
 
-  public function get() {
+  public function execute() {
     $this->connect(new DBConfig($this->_connectionName));
-    $this->_rawQuery = trim($this->_rawQuery);
+    $rawQuery = $this->_rawQuery = trim($this->_rawQuery);
     $this->_resultSet = $this->query($this->_rawQuery);
     $this->cleanRawQuery();
     $this->disconnect();
-    return $this;
+    if(strpos($rawQuery, 'SELECT') !== false) {
+      return $this;  
+    }
+    return $this->_resultSet;
   }
 
   public function result($serialized = false) {
@@ -218,10 +221,15 @@ class QBuilder extends SQLClass {
       }
     }
     
-    $this->_numRows = $this->count_rows($this->_resultSet);
-    $arr = array();
-    while($row = $this->fetch_assoc($this->_resultSet)) {
-      $arr[] = $row;
+    $arr = $this->fetch_assoc($this->_resultSet);
+    if($arr != null) {
+      $this->_numRows = $this->count_rows($this->_resultSet);
+      $arry = array();
+      while($row = $this->fetch_assoc($this->_resultSet)) {
+        $arr[] = $row;
+      }
+    } else {
+      $arr = [];
     }
 
     if($willSerialized) {
@@ -231,6 +239,7 @@ class QBuilder extends SQLClass {
         $arr = xmlrpc_encode($arr);
       }
     }
+    
 
     $this->free_result($this->_resultSet);
     return $arr;
@@ -245,8 +254,11 @@ class QBuilder extends SQLClass {
       }
     }
 
-    $this->_numRows = 1;
+    
     $row = $this->fetch_assoc($this->_resultSet);
+    if($row != null) {
+      $this->_numRows = 1;
+    }
 
     if($willSerialized) {
       if($serialized == 'JSON') {
@@ -255,12 +267,41 @@ class QBuilder extends SQLClass {
         $row = xmlrpc_encode($row);
       }
     }
+
     $this->free_result($this->_resultSet);
     return $row;
   }
 
-  public function num_rows() {
+  public function numNows() {
     return $this->_numRows;
+  }
+
+  public function insert($table, $data) {
+    $columns = '';
+    $values = '';
+    foreach($data AS $key => $value) {
+      $columns .= $key . ', ';
+      $values .= '"' . $value . '", ';
+    }
+    $columns = rtrim($columns, ', ');
+    $values = rtrim($values, ', ');
+    $this->_rawQuery .= 'INSERT INTO ' . $table . ' (' . $columns . ') VALUES (' . $values . ')';
+    return $this;
+  }
+
+  public function update($table, $data) {
+    $sets = '';
+    foreach($data AS $key => $value) {
+      $sets .= $key . ' = "' . $value . '", ';
+    }
+    $sets = rtrim($sets, ', ');
+    $this->_rawQuery .= 'UPDATE ' . $table . ' SET ' . $sets . ' ';
+    return $this;
+  }
+
+  public function delete($table) {
+    $this->_rawQuery .= 'DELETE FROM ' . $table . ' ';
+    return $this;
   }
 
   function __destruct() { 

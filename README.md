@@ -20,7 +20,7 @@ Basic SELECT query
 
   $result = $QB->select()
                ->from('users')
-               ->get()
+               ->execute()
                ->result();
 
   // Resultant query 'SELECT * FROM users'
