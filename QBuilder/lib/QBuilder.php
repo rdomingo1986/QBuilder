@@ -9,11 +9,12 @@ class QBuilder extends SQLClass {
   private $_resultSet;
   private $_numRows;
   private $_connectionName;
+  private $_insertId;
 
   function __construct($connectionName = 'default') {
     $this->_connectionName = $connectionName;
     $this->_resultSet = null;
-    $this->_numRows = -1;
+    $this->_insertId = $this->_numRows = -1;
   }
 
   public function setRawQuery($rawQuery) { $this->_rawQuery = $rawQuery; }
@@ -203,6 +204,9 @@ class QBuilder extends SQLClass {
     $this->connect(new DBConfig($this->_connectionName));
     $rawQuery = $this->_rawQuery = trim($this->_rawQuery);
     $this->_resultSet = $this->query($this->_rawQuery);
+    if(strpos($rawQuery, 'INSERT') !== false) {
+      $this->_insertId = $this->_link->insert_id;
+    }
     $this->cleanRawQuery();
     $this->disconnect();
     if(strpos($rawQuery, 'SELECT') !== false) {
@@ -220,10 +224,10 @@ class QBuilder extends SQLClass {
       }
     }
     
-    $arr = $this->fetch_assoc($this->_resultSet);
+    $arr = array();
+    $arr[] = $this->fetch_assoc($this->_resultSet);
     if($arr != null) {
       $this->_numRows = $this->count_rows($this->_resultSet);
-      $arry = array();
       while($row = $this->fetch_assoc($this->_resultSet)) {
         $arr[] = $row;
       }
@@ -275,7 +279,11 @@ class QBuilder extends SQLClass {
     return $this->_numRows;
   }
 
-  public function insert($table, $data) {
+  public function insertId() {
+    return $this->_insertId;
+  }
+
+  public function insert($table, $data) { //last insert
     $columns = '';
     $values = '';
     foreach($data AS $key => $value) {

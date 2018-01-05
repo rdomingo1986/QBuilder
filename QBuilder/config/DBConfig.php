@@ -8,7 +8,7 @@ class DBConfig {
       'host' => 'localhost',
       'user' => 'root',
       'pass' => '12345678',
-      'dbname' => 'gtn_tourtrack'
+      'dbname' => 'globaltech_jobs'
     ],
     'another_one' => [
       'host' => 'host',

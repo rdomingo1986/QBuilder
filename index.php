@@ -2,12 +2,15 @@
 require_once 'QBuilder/lib/QBuilder.php';
 
 $db = new QBuilder();
-$result = $db->select('*')
-  ->from('tours')
-  ->execute()
-  ->result('JSON');
+$result = $db->insert('people', [
+  'name' => 'Pedro',
+  'lastname' => 'Perez',
+  'identification' => '654222222323',
+  'age' => 33
+])
+  ->execute();
 
 var_dump($result);
-echo PHP_EOL;
+var_dump($db->insertId());
 echo 'Rows :' . $db->numNows();
 echo PHP_EOL;
