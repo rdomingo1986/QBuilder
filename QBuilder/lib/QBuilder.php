@@ -148,6 +148,7 @@ class QBuilder extends SQLClass {
     $argsQty = count($args);
     $sqlWord = '';
     
+    
     if($argsQty === 1) {
 
 
