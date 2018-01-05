@@ -12,7 +12,6 @@ class QBuilder extends SQLClass {
 
   function __construct($connectionName = 'default') {
     $this->_connectionName = $connectionName;
-    $this->_rawQuery = $rawQuery;
     $this->_resultSet = null;
     $this->_numRows = -1;
   }
