@@ -1,4 +1,4 @@
-<?
+<?php
 if(! function_exists('errorMessageHandler')) {
   function errorMessageHandler($errorCode, $exceptionType = 'Exception') {
     $messages = array(
@@ -16,4 +16,3 @@ if(! function_exists('paramExistsInAlloweds')) {
     return true;
   }
 }
-?>

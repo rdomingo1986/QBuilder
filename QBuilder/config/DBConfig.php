@@ -8,7 +8,7 @@ class DBConfig {
       'host' => 'localhost',
       'user' => 'root',
       'pass' => '12345678',
-      'dbname' => 'globaltech_jobs'
+      'dbname' => 'gtn_tourtrack'
     ],
     'another_one' => [
       'host' => 'host',
@@ -24,4 +24,3 @@ class DBConfig {
     }
   }
 }
-?>

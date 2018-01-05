@@ -310,4 +310,3 @@ class QBuilder extends SQLClass {
     }
   }
 }
-?>

@@ -40,4 +40,3 @@ class SQLClass {
     $this->_link = null;
   }
 }
-?>
