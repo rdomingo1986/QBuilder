@@ -226,7 +226,7 @@ class QBuilder extends SQLClass {
     
     $arr = array();
     $arr[] = $this->fetch_assoc($this->_resultSet);
-    if($arr != null) {
+    if($arr[0] != null) {
       $this->_numRows = $this->count_rows($this->_resultSet);
       while($row = $this->fetch_assoc($this->_resultSet)) {
         $arr[] = $row;
