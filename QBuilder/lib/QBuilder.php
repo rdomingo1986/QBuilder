@@ -1,20 +1,34 @@
 <?php
 require_once './QBuilder/config/DBConfig.php';
 require_once 'Functions.php';
-require_once 'SQLClass.php';
 
-class QBuilder extends SQLClass {
+class QBuilder {
   
-  protected $_rawQuery;
+  private $_rawQuery;
   private $_resultSet;
   private $_numRows;
-  private $_connectionName;
+  private $_dbIndex;
   private $_insertId;
+  private $_link;
 
-  function __construct($connectionName = 'default') {
-    $this->_connectionName = $connectionName;
-    $this->_resultSet = null;
-    $this->_insertId = $this->_numRows = -1;
+  function __construct($dbIndex = 'default') {
+    $this->_dbIndex = $dbIndex;
+    $this->_resultSet = $this->_insertId = $this->_numRows = null;
+    $this->cleanRawQuery();
+  }
+
+  public function connect(DBConfig $config) {
+    if($this->_link != null) {
+      $this->disconnect();
+    }
+    $this->_link = new Mysqli($config->host, $config->user, $config->pass, $config->dbname);
+  }
+
+  public function disconnect() {
+    if($this->_link != null) {
+      $this->_link->close();
+      $this->_link = null;
+    }
   }
 
   public function setRawQuery($rawQuery) { $this->_rawQuery = $rawQuery; }
@@ -24,6 +38,11 @@ class QBuilder extends SQLClass {
   public function cleanRawQuery() { 
     $this->_rawQuery = '';
     return $this;
+  }
+
+  public function cleanStatement($rawQuery) {
+    if(function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) { $rawQuery = stripslashes($rawQuery); }
+    return $this->_link->escape_string($rawQuery);
   }
 
   public function openGroup($before = 'AND') {
@@ -142,6 +161,7 @@ class QBuilder extends SQLClass {
     }
     return $this;
   }
+
   public function orWhere() {
     //falta que el segundo o tercer parametro contenga algo parecido a una consulta sql evitar el uso de doble comillas y auto colocar los parentecis
     $args = func_get_args();
@@ -239,8 +259,6 @@ class QBuilder extends SQLClass {
     return $this;
   }
 
-  
-
   public function orderBy($column, $order) {
     $alloweds = ['ASC', 'DESC'];
     if(!paramExistsInAlloweds($order, $alloweds)) {
@@ -281,13 +299,14 @@ class QBuilder extends SQLClass {
   }
 
   public function execute() {
-    $this->connect(new DBConfig($this->_connectionName));
+    $this->_numRows = null;
+    $this->connect(new DBConfig($this->_dbIndex));
     $rawQuery = $this->_rawQuery = trim($this->_rawQuery);
-    $this->_resultSet = $this->query($this->_rawQuery);
+    $this->_resultSet = $this->_link->query($rawQuery);
     if(strpos($rawQuery, 'INSERT') !== false) {
       $this->_insertId = $this->_link->insert_id;
     }
-    //$this->cleanRawQuery();
+    $this->cleanRawQuery();
     $this->disconnect();
     if(strpos($rawQuery, 'SELECT') !== false) {
       return $this;  
@@ -305,10 +324,10 @@ class QBuilder extends SQLClass {
     }
     
     $arr = array();
-    $arr[] = $this->fetch_assoc($this->_resultSet);
+    $arr[] =$this->_resultSet->fetch_assoc();
     if($arr[0] != null) {
-      $this->_numRows = $this->count_rows($this->_resultSet);
-      while($row = $this->fetch_assoc($this->_resultSet)) {
+      $this->_numRows = $this->_resultSet->num_rows;
+      while($row =$this->_resultSet->fetch_assoc()) {
         $arr[] = $row;
       }
     } else {
@@ -324,7 +343,7 @@ class QBuilder extends SQLClass {
     }
     
 
-    $this->free_result($this->_resultSet);
+    $this->_resultSet->free_result();
     return $arr;
   }
 
@@ -338,7 +357,7 @@ class QBuilder extends SQLClass {
     }
 
     
-    $row = $this->fetch_assoc($this->_resultSet);
+    $row =$this->_resultSet->fetch_assoc();
     if($row != null) {
       $this->_numRows = 1;
     }
@@ -351,7 +370,7 @@ class QBuilder extends SQLClass {
       }
     }
 
-    $this->free_result($this->_resultSet);
+    $this->_resultSet->free_result();
     return $row;
   }
 
@@ -392,8 +411,6 @@ class QBuilder extends SQLClass {
   }
 
   function __destruct() { 
-    if($this->_link != null) {
-      $this->_link->disconnect();
-    }
+    $this->disconnect();
   }
 }
